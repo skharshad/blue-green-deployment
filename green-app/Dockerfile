@@ -1,4 +1,3 @@
-cat <<EOF > green-app/Dockerfile
 FROM node:18
 WORKDIR /app
 COPY . .
