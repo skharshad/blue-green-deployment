@@ -2,30 +2,42 @@ pipeline {
     agent any
 
     stages {
-        stage('Clone') {
+        stage('Clone repository') {
             steps {
-                git 'https://github.com/your-username/blue-green-deployment.git'
+                git credentialsId: 'github-token', url: 'https://github.com/skharshad/blue-green-deployment.git'
             }
         }
 
-        stage('Build Docker Images') {
+        stage('Build Blue App') {
             steps {
-                sh 'docker-compose build'
+                sh 'docker build -t blue-app ./blue-app'
             }
         }
 
-        stage('Deploy Alternate Version') {
+        stage('Build Green App') {
             steps {
-                script {
-                    def active = sh(script: "curl -s http://localhost | grep BLUE", returnStatus: true) == 0 ? "blue" : "green"
-                    def next = active == "blue" ? "green" : "blue"
-                    sh "docker-compose up -d \${next}"
-                    sleep 5
-                    sh "sed -i 's/proxy_pass http:\\/\\/\\${active}/proxy_pass http:\\/\\/\\${next}/' nginx/default.conf"
-                    sh "docker-compose build nginx && docker-compose up -d nginx"
-                }
+                sh 'docker build -t green-app ./green-app'
+            }
+        }
+
+        stage('Start Blue App') {
+            steps {
+                sh 'docker run -d --name blue-app -p 8081:80 blue-app || echo "Blue app may already be running"'
+            }
+        }
+
+        stage('Start Green App') {
+            steps {
+                sh 'docker run -d --name green-app -p 8082:80 green-app || echo "Green app may already be running"'
+            }
+        }
+
+        stage('Deploy Nginx (Blue Route)') {
+            steps {
+                sh 'docker stop nginx || true && docker rm nginx || true'
+                sh 'docker run -d --name nginx -p 80:80 -v $PWD/nginx/blue.conf:/etc/nginx/nginx.conf:ro nginx'
             }
         }
     }
 }
-EOF
+
