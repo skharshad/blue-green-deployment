@@ -1,0 +1,25 @@
+cat <<EOF > docker-compose.yml
+version: '3'
+
+services:
+  blue:
+    build: ./blue-app
+    container_name: blue_app
+    ports:
+      - "3001:3000"
+
+  green:
+    build: ./green-app
+    container_name: green_app
+    ports:
+      - "3002:3000"
+
+  nginx:
+    build: ./nginx
+    container_name: nginx_proxy
+    ports:
+      - "80:80"
+    depends_on:
+      - blue
+      - green
+EOF
