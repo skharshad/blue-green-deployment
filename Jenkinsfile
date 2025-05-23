@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Clone repository') {
             steps {
-                git credentialsId: 'github-token', url: 'https://github.com/skharshad/blue-green-deployment.git'
+                git branch: 'main' , credentialsId: 'github-token', url: 'https://github.com/skharshad/blue-green-deployment.git'
             }
         }
 
