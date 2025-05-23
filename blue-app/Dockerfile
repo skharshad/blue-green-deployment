@@ -1,4 +1,3 @@
-cat <<EOF > blue-app/Dockerfile
 FROM node:18
 WORKDIR /app
 COPY . .
